@@ -15,10 +15,11 @@ limitations under the License.
 
 #include "tensorflow_lite_support/custom_ops/kernel/sentencepiece/model_converter.h"
 
+#include "absl/status/status.h"
+#include "src/sentencepiece_model.pb.h"
 #include "tensorflow_lite_support/custom_ops/kernel/sentencepiece/double_array_trie_builder.h"
 #include "tensorflow_lite_support/custom_ops/kernel/sentencepiece/encoder_config_generated.h"
-#include "src/sentencepiece_model.proto.h"
-#include "absl/status/status.h"
+
 namespace tflite {
 namespace support {
 namespace ops {
@@ -50,13 +51,15 @@ DecodePrecompiledCharsmap(
       std::vector<int8_t>(normalized_ptr, normalized_ptr + normalized_size));
 }
 
-absl::StatusOr<std::string> ConvertSentencepieceModelToFlatBuffer(
+std::pair<absl::Status, std::string> ConvertSentencepieceModelToFlatBuffer(
     const std::string& model_config_str, int encoding_offset) {
   ::sentencepiece::ModelProto model_config;
   if (!model_config.ParseFromString(model_config_str)) {
-    return absl::InvalidArgumentError(
-        "Invalid configuration, can't parse SentencePiece model config " +
-        model_config.InitializationErrorString());
+    return {
+        absl::InvalidArgumentError(
+            "Invalid configuration, can't parse SentencePiece model config " +
+            model_config.InitializationErrorString()),
+        ""};
   }
   // Convert sentencepieces.
   std::vector<std::string> pieces;
@@ -82,8 +85,8 @@ absl::StatusOr<std::string> ConvertSentencepieceModelToFlatBuffer(
         // Ignore unknown and control codes.
         break;
       default:
-        return absl::InvalidArgumentError("Invalid SentencePiece piece type " +
-                                          piece.piece());
+        return {absl::InvalidArgumentError("Invalid SentencePiece piece type " +
+                                          piece.piece()), ""};
     }
     scores.push_back(piece.score());
     ++index;
@@ -123,8 +126,9 @@ absl::StatusOr<std::string> ConvertSentencepieceModelToFlatBuffer(
   ecb.add_normalized_prefixes(normalization_trie_fbs);
   ecb.add_normalized_replacements(normalization_strings_fbs);
   FinishEncoderConfigBuffer(builder, ecb.Finish());
-  return std::string(reinterpret_cast<const char*>(builder.GetBufferPointer()),
-                     builder.GetSize());
+  return {absl::OkStatus(),
+          std::string(reinterpret_cast<const char*>(builder.GetBufferPointer()),
+                      builder.GetSize())};
 }
 
 int GetVocabularySize(const std::string& model_string) {
@@ -134,8 +138,8 @@ int GetVocabularySize(const std::string& model_string) {
 
 std::string ConvertSentencepieceModel(const std::string& model_string) {
   const auto result = ConvertSentencepieceModelToFlatBuffer(model_string);
-  assert(result.status().ok());
-  return result.value();
+  assert(result.first.ok());
+  return result.second;
 }
 }  // namespace ops
 }  // namespace support
