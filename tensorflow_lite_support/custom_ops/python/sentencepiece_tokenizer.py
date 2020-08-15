@@ -20,7 +20,7 @@ It follows TF.text designers design.
 
 """
 import tensorflow.compat.v2 as tf  # pylint: disable=g-direct-tensorflow-import
-from third_party.tensorflow.python.ops.ragged import ragged_tensor  # pylint: disable=g-direct-tensorflow-import
+from tensorflow.python.ops.ragged import ragged_tensor  # pylint: disable=g-direct-tensorflow-import
 from tensorflow_lite_support.custom_ops.kernel.sentencepiece import gen_sentencepiece_tokenizer_op
 from tensorflow_lite_support.custom_ops.kernel.sentencepiece.py import model_converter
 

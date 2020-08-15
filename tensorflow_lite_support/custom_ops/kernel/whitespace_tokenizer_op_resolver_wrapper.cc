@@ -13,23 +13,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow_lite_support/custom_ops/kernel/sentencepiece/py_tflite_registerer.h"
 #include "pybind11/pybind11.h"
-#include "pybind11/pytypes.h"
+#include "tensorflow/lite/mutable_op_resolver.h"
+#include "tensorflow_lite_support/custom_ops/kernel/whitespace_tokenizer_op_resolver.h"
 
-PYBIND11_MODULE(pywrap_lingua_registerer, m) {
-  m.doc() = R"pbdoc(
-    pywrap_tflite_registerer
-    A module with a wrapper that adds to a Python wrapper for TFLite
-    sentencepiece tokenizer.
-  )pbdoc";
+PYBIND11_MODULE(_pywrap_whitespace_tokenizer_op_resolver, m) {
+  m.doc() = "_pywrap_whitespace_tokenizer_op_resolver";
   m.def(
-      "TFLite_SentencepieceTokenizerRegisterer",
+      "AddWhitespaceTokenizerCustomOp",
       [](uintptr_t resolver) {
-        TFLite_SentencepieceTokenizerRegisterer(
+        tflite::ops::custom::AddWhitespaceTokenizerCustomOp(
             reinterpret_cast<tflite::MutableOpResolver*>(resolver));
       },
-      R"pbdoc(
-      The function that adds Sentencepiece Tokenizer to the TFLite interpreter.
-      )pbdoc");
+      "Op registerer function for the tftext:WhitespaceTokenizer custom op.");
 }

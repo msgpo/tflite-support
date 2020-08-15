@@ -199,9 +199,9 @@ pybind_extension(
     module_name = "pywrap_tflite_registerer",
     deps = [
         ":py_tflite_registerer",
-        "//third_party/pybind11",
         "//third_party/python_runtime:headers",
         "@org_tensorflow//tensorflow/lite:framework",
         "@org_tensorflow//tensorflow/lite/kernels:builtin_ops",
+        "@pybind11",
     ],
 )
